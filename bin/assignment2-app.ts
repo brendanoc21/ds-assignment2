@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
-import { EDAAppStack } from "../lib/eda-app-stack";
+import { Assignment2AppStack } from "../lib/assignment2-stack";
 
 const app = new cdk.App();
-new EDAAppStack(app, "EDAStack", {
+new Assignment2AppStack(app, "Assignment2Stack", {
   env: { region: "eu-west-1" },
 });
