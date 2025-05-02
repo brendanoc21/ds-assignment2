@@ -1,12 +1,12 @@
 # Distributed Systems - Event-Driven Architecture.
 
-__Name:__ Brendan O'Connor
+__Name:__ Brendan
 
 __Demo__: ....URL of YouTube demo ......
 
 This repository contains the implementation of a skeleton design for an application that manages a photo gallery, illustrated below. The app uses an event-driven architecture and is deployed on the AWS platform using the CDK framework for infrastructure provisioning.
 
-![](images/arch.png)
+![](./images/arch.jpg)
 
 ### Code Status.
 
@@ -21,7 +21,7 @@ __Feature:__
 + Moderator
   + Status updating
 
-]e.g. 
+e.g. 
 
 __Feature:__
 + Photographer:
