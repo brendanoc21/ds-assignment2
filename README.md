@@ -14,23 +14,13 @@ This repository contains the implementation of a skeleton design for an applicat
 
 __Feature:__
 + Photographer:
-  + Log new Images
-  + Metadata updating
-  + Invalid image removal  
-  + Status Update Mailer
-+ Moderator
-  + Status updating
-
-e.g. 
-
-__Feature:__
-+ Photographer:
-  + Log new Images - Completed and Tested.
-  + Metadata updating - Not Attempted
+  + Log new Images - Completed and Tested
+  + Metadata updating - Completed and Tested
   + Invalid image removal - Completed and Tested
-  + Status Update Mailer - Attempted.
-+ etc
+  + Status Update Mailer - Attempted
++ Moderator
+  + Status updating - Not Attempted
 
 ### Notes (Optional)
 
-[Any additional information about your solution you wish to draw attention to.]
+N/A
