@@ -28,15 +28,22 @@ export class Assignment2AppStack extends cdk.Stack {
     });
 
     // Integration infrastructure
+    const imageDeadLetterQueue = new sqs.Queue(this, "image-dead-letter-queue",{
+      queueName: "ImageDeadLetterQueue",
+      retentionPeriod: cdk.Duration.minutes(5),
+    });
 
-    const imageProcessQueue = new sqs.Queue(this, "img-created-queue", {
+    const imageProcessQueue = new sqs.Queue(this, "image-created-queue", {
       receiveMessageWaitTime: cdk.Duration.seconds(10),
+      deadLetterQueue:{
+        maxReceiveCount: 1,
+        queue: imageDeadLetterQueue,
+      }
     });
 
     const mailerQ = new sqs.Queue(this, "mailer-queue", {
       receiveMessageWaitTime: cdk.Duration.seconds(10),
     });
-
 
     const newImageTopic = new sns.Topic(this, "NewImageTopic", {
       displayName: "New Image topic",
@@ -58,6 +65,17 @@ export class Assignment2AppStack extends cdk.Stack {
       }
     );
 
+    const removeImageFn = new lambdanode.NodejsFunction(
+      this, 
+      "RemoveImageFn",
+      {
+      runtime:lambda.Runtime.NODEJS_22_X,
+      memorySize: 128,
+      timeout: cdk.Duration.seconds(10),
+      entry: `${__dirname}/../lambdas/removeImage.ts`,
+      }
+    );
+
     const mailerFn = new lambdanode.NodejsFunction(this, "mailer-function", {
       runtime: lambda.Runtime.NODEJS_16_X,
       memorySize: 1024,
@@ -70,7 +88,7 @@ export class Assignment2AppStack extends cdk.Stack {
     imagesBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
       new s3n.SnsDestination(newImageTopic)  // Changed
-  );
+    );
 
   newImageTopic.addSubscription(
     new subs.SqsSubscription(imageProcessQueue)
@@ -96,6 +114,8 @@ export class Assignment2AppStack extends cdk.Stack {
     // Permissions
 
     imagesBucket.grantRead(logImageFn);
+    imageTable.grantReadWriteData(logImageFn);
+    imagesBucket.grantDelete(removeImageFn);
 
     mailerFn.addToRolePolicy(
       new iam.PolicyStatement({
@@ -106,6 +126,13 @@ export class Assignment2AppStack extends cdk.Stack {
           "ses:SendTemplatedEmail",
         ],
         resources: ["*"],
+      })
+    );
+
+    removeImageFn.addEventSource(
+      new events.SqsEventSource(imageDeadLetterQueue,{
+        batchSize: 1,
+        maxBatchingWindow: cdk.Duration.seconds(5),
       })
     );
 
