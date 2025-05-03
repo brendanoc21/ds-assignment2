@@ -19,7 +19,7 @@ __Feature:__
   + Invalid image removal - Completed and Tested
   + Status Update Mailer - Attempted
 + Moderator
-  + Status updating - Not Attempted
+  + Status updating - Completed and Tested
 
 ### Notes (Optional)
 
