@@ -7,8 +7,12 @@ import {
   S3Client,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
+import {DynamoDBClient} from "@aws-sdk/client-dynamodb"
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const s3 = new S3Client();
+const client = DynamoDBDocumentClient.from(new DynamoDBClient());
+const tableName = process.env.IMAGE_TABLE_NAME || "ImagesTable";
 
 export const handler: SQSHandler = async (event) => {
   console.log("Event ", JSON.stringify(event));
@@ -23,6 +27,12 @@ export const handler: SQSHandler = async (event) => {
         const srcBucket = s3e.bucket.name;
         // Object key may have spaces or unicode non-ASCII characters.
         const srcKey = decodeURIComponent(s3e.object.key.replace(/\+/g, " "));
+
+        if(!srcKey.endsWith(".jpeg") && !srcKey.endsWith(".png")){
+          console.log(`Rejected the file: ${srcKey}`)
+          throw new Error("Invalid file type format")
+        }
+
         let origimage = null;
         try {
           // Download the image from the S3 source bucket.
@@ -32,6 +42,10 @@ export const handler: SQSHandler = async (event) => {
           };
           origimage = await s3.send(new GetObjectCommand(params));
           // Process the image ......
+          await client.send(new PutCommand({
+            TableName: tableName,
+            Item: {imageId: srcKey}
+        }))
         } catch (error) {
           console.log(error);
         }
