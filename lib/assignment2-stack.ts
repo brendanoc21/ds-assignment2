@@ -44,12 +44,12 @@ export class Assignment2AppStack extends cdk.Stack {
 
     // Lambda functions
 
-    const processImageFn = new lambdanode.NodejsFunction(
+    const logImageFn = new lambdanode.NodejsFunction(
       this,
-      "ProcessImageFn",
+      "LogImageFn",
       {
         runtime: lambda.Runtime.NODEJS_22_X,
-        entry: `${__dirname}/../lambdas/processImage.ts`,
+        entry: `${__dirname}/../lambdas/logImage.ts`,
         timeout: cdk.Duration.seconds(15),
         memorySize: 128,
         environment:{
@@ -84,7 +84,7 @@ export class Assignment2AppStack extends cdk.Stack {
       maxBatchingWindow: cdk.Duration.seconds(5),
     });
 
-    processImageFn.addEventSource(newImageEventSource);
+    logImageFn.addEventSource(newImageEventSource);
 
     const newImageMailEventSource = new events.SqsEventSource(mailerQ, {
       batchSize: 5,
@@ -95,7 +95,7 @@ export class Assignment2AppStack extends cdk.Stack {
 
     // Permissions
 
-    imagesBucket.grantRead(processImageFn);
+    imagesBucket.grantRead(logImageFn);
 
     mailerFn.addToRolePolicy(
       new iam.PolicyStatement({
