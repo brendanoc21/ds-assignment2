@@ -1,6 +1,6 @@
 # Distributed Systems - Event-Driven Architecture.
 
-__Name:__ Brendan
+__Name:__ Brendan O'Connor
 
 __Demo__: ....URL of YouTube demo ......
 

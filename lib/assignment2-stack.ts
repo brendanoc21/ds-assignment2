@@ -41,7 +41,7 @@ export class Assignment2AppStack extends cdk.Stack {
       }
     });
 
-    const mailerQ = new sqs.Queue(this, "mailer-queue", {
+    const mailerQueue = new sqs.Queue(this, "mailer-queue", {
       receiveMessageWaitTime: cdk.Duration.seconds(10),
     });
 
@@ -80,21 +80,21 @@ export class Assignment2AppStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_16_X,
       memorySize: 1024,
       timeout: cdk.Duration.seconds(3),
-      entry: `${__dirname}/../lambdas/mailer.ts`,
+      entry: `${__dirname}/../lambdas/statusUpdateMailer.ts`,
     });
 
 
     // S3 --> SQS
     imagesBucket.addEventNotification(
       s3.EventType.OBJECT_CREATED,
-      new s3n.SnsDestination(newImageTopic)  // Changed
+      new s3n.SnsDestination(newImageTopic)
     );
 
-  newImageTopic.addSubscription(
-    new subs.SqsSubscription(imageProcessQueue)
-  );
+    newImageTopic.addSubscription(
+      new subs.SqsSubscription(imageProcessQueue)
+    );
 
-  newImageTopic.addSubscription(new subs.SqsSubscription(mailerQ));
+    newImageTopic.addSubscription(new subs.SqsSubscription(mailerQueue));
 
   // SQS --> Lambda
     const newImageEventSource = new events.SqsEventSource(imageProcessQueue, {
@@ -104,7 +104,7 @@ export class Assignment2AppStack extends cdk.Stack {
 
     logImageFn.addEventSource(newImageEventSource);
 
-    const newImageMailEventSource = new events.SqsEventSource(mailerQ, {
+    const newImageMailEventSource = new events.SqsEventSource(mailerQueue, {
       batchSize: 5,
       maxBatchingWindow: cdk.Duration.seconds(5),
     }); 
