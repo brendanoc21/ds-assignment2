@@ -76,6 +76,16 @@ export class Assignment2AppStack extends cdk.Stack {
       }
     );
 
+    const addMetadataFn = new lambdanode.NodejsFunction(this, "AddMetadataFn",{
+      runtime: lambda.Runtime.NODEJS_22_X,
+      entry: `${__dirname}/../lambdas/addMetadata.ts`,
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 128,
+      environment:{
+        IMAGE_TABLE_NAME: imageTable.tableName
+      }
+    });
+
     const mailerFn = new lambdanode.NodejsFunction(this, "mailer-function", {
       runtime: lambda.Runtime.NODEJS_16_X,
       memorySize: 1024,
@@ -92,6 +102,14 @@ export class Assignment2AppStack extends cdk.Stack {
 
     newImageTopic.addSubscription(
       new subs.SqsSubscription(imageProcessQueue)
+    );
+
+    newImageTopic.addSubscription(new subs.LambdaSubscription(addMetadataFn,{
+      filterPolicy:{
+        metadata_type: sns.SubscriptionFilter.stringFilter({
+          allowlist: ["Name", "Date", "Caption"],
+        }),
+      },})
     );
 
     newImageTopic.addSubscription(new subs.SqsSubscription(mailerQueue));
@@ -116,6 +134,7 @@ export class Assignment2AppStack extends cdk.Stack {
     imagesBucket.grantRead(logImageFn);
     imageTable.grantReadWriteData(logImageFn);
     imagesBucket.grantDelete(removeImageFn);
+    imageTable.grantWriteData(addMetadataFn);
 
     mailerFn.addToRolePolicy(
       new iam.PolicyStatement({
