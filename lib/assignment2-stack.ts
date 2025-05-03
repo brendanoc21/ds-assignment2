@@ -10,6 +10,7 @@ import * as subs from "aws-cdk-lib/aws-sns-subscriptions";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb"
+import { eventNames } from "node:process";
 
 export class Assignment2AppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -100,9 +101,15 @@ export class Assignment2AppStack extends cdk.Stack {
       new s3n.SnsDestination(newImageTopic)
     );
 
-    newImageTopic.addSubscription(
-      new subs.SqsSubscription(imageProcessQueue)
-    );
+    newImageTopic.addSubscription(new subs.SqsSubscription(imageProcessQueue,{
+      filterPolicyWithMessageBody:{
+        Records: sns.FilterOrPolicy.policy({eventName:
+          sns.FilterOrPolicy.filter(sns.SubscriptionFilter.stringFilter({
+            allowlist: ["ObjectCreated:Put", "ObjectRemoved:Delete"],
+          })),
+        })
+      }
+    }));
 
     newImageTopic.addSubscription(new subs.LambdaSubscription(addMetadataFn,{
       filterPolicy:{
